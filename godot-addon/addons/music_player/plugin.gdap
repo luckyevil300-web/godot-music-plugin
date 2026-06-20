@@ -1,0 +1,9 @@
+[config]
+name="GodotMusicPlugin"
+binary_type="local"
+binary="GodotMusicPlugin.aar"
+
+[dependencies]
+local=[]
+remote=[]
+custom_maven_repos=[]
