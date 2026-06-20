@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Widget pequeno: 2x1 células (≈ 110 x 40 dp)
+    Mostra: capa, título, botão play/pause, botão próxima
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:background="#CC000000"
+    android:padding="6dp"
+    android:gravity="center_vertical">
+
+    <ImageView
+        android:id="@+id/widget_album_art"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:scaleType="centerCrop"
+        android:src="@android:drawable/ic_media_play"
+        android:background="#333333"
+        android:contentDescription="Capa do álbum" />
+
+    <TextView
+        android:id="@+id/widget_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="6dp"
+        android:textColor="#FFFFFF"
+        android:textSize="11sp"
+        android:maxLines="1"
+        android:ellipsize="marquee"
+        android:focusable="true"
+        android:marqueeRepeatLimit="marquee_forever"
+        android:text="Nenhuma música" />
+
+    <ImageButton
+        android:id="@+id/widget_play_pause"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:src="@android:drawable/ic_media_play"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:tint="#FFFFFF"
+        android:contentDescription="Play/Pause" />
+
+    <ImageButton
+        android:id="@+id/widget_next"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:src="@android:drawable/ic_media_next"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:tint="#FFFFFF"
+        android:contentDescription="Próxima" />
+
+</LinearLayout>
