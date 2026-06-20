@@ -37,6 +37,12 @@ jobs:
             mkdir -p stub_aar
             cp android/stub/GodotPlugin.class stub_aar/ 2>/dev/null || true
           else
+          ls -lh godot_android_lib.zip
+
+          file godot_android_lib.zip
+
+          head -20 godot_android_lib.zip
+
             unzip -q godot_android_lib.zip -d godot_lib
             find godot_lib -name "*.aar" -exec cp {} plugin/libs/ \;
             echo "Godot AAR copiado para plugin/libs/"
