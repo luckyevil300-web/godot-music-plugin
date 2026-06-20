@@ -1,0 +1,72 @@
+name: Build Plugin AAR
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Configurar JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Baixar Godot AAR (engine stub para compilação)
+        run: |
+          mkdir -p plugin/libs
+          # Baixa o template de release do Godot 4.3 para Android
+          # Substitua a URL pela versão exata que você usa
+          GODOT_VERSION="4.3"
+          wget -q "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_android_lib.zip" \
+            -O godot_android_lib.zip || true
+
+          # Se o download falhar, tenta gerar um AAR stub mínimo
+          if [ ! -f godot_android_lib.zip ]; then
+            echo "Aviso: não foi possível baixar o Godot AAR. Criando stub mínimo..."
+            # Cria um AAR stub para compilação (só para CI)
+            mkdir -p stub_aar
+            cp android/stub/GodotPlugin.class stub_aar/ 2>/dev/null || true
+          else
+            unzip -q godot_android_lib.zip -d godot_lib
+            find godot_lib -name "*.aar" -exec cp {} plugin/libs/ \;
+            echo "Godot AAR copiado para plugin/libs/"
+          fi
+          ls plugin/libs/
+
+      - name: Gerar permissão de execução para Gradle
+        run: chmod +x gradlew
+
+      - name: Compilar plugin (Release)
+        run: ./gradlew :plugin:assembleRelease
+
+      - name: Copiar AAR para pasta de saída
+        run: |
+          mkdir -p output
+          cp plugin/build/outputs/aar/plugin-release.aar output/GodotMusicPlugin.aar
+          echo "✅ Plugin compilado com sucesso!"
+          ls -lh output/
+
+      - name: Fazer upload do AAR como artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: GodotMusicPlugin
+          path: output/GodotMusicPlugin.aar
+          retention-days: 30
+
+      - name: Criar Release (apenas em push para main com tag)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: output/GodotMusicPlugin.aar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
