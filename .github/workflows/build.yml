@@ -1,63 +1,51 @@
 name: Build Plugin AAR
 
-on: push: branches: [ main ] pull_request: branches: [ main ] workflow_dispatch:
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
 
-jobs: build: runs-on: ubuntu-latest
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-steps:
-  - name: Checkout código
-    uses: actions/checkout@v4
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
 
-  - name: Configurar JDK 17
-    uses: actions/setup-java@v4
-    with:
-      distribution: temurin
-      java-version: 17
+      - name: Configurar JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
 
-  - name: Baixar Godot AAR
-    run: |
-      mkdir -p plugin/libs
+      - name: Dar permissão ao Gradle
+        run: chmod +x gradlew
 
-      GODOT_VERSION="4.3"
+      - name: Compilar plugin Release
+        run: ./gradlew :plugin:assembleRelease --stacktrace
 
-      wget -S \
-        "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_android_lib.zip" \
-        -O godot_android_lib.zip
+      - name: Preparar artefato
+        run: |
+          mkdir -p output
+          cp plugin/build/outputs/aar/plugin-release.aar output/GodotMusicPlugin.aar
+          ls -lh output/
 
-      echo "Arquivo baixado:"
-      ls -lh godot_android_lib.zip
-      file godot_android_lib.zip
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: GodotMusicPlugin
+          path: output/GodotMusicPlugin.aar
+          retention-days: 30
 
-      unzip -q godot_android_lib.zip -d godot_lib
-
-      find godot_lib -name "*.aar" -exec cp {} plugin/libs/ \;
-
-      echo "Conteúdo de plugin/libs:"
-      ls -lh plugin/libs/
-
-  - name: Dar permissão ao Gradle
-    run: chmod +x gradlew
-
-  - name: Compilar plugin Release
-    run: ./gradlew :plugin:assembleRelease --stacktrace
-
-  - name: Preparar artefato
-    run: |
-      mkdir -p output
-      cp plugin/build/outputs/aar/plugin-release.aar output/GodotMusicPlugin.aar
-      ls -lh output/
-
-  - name: Upload Artifact
-    uses: actions/upload-artifact@v4
-    with:
-      name: GodotMusicPlugin
-      path: output/GodotMusicPlugin.aar
-      retention-days: 30
-
-  - name: Criar Release
-    if: startsWith(github.ref, 'refs/tags/')
-    uses: softprops/action-gh-release@v2
-    with:
-      files: output/GodotMusicPlugin.aar
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Criar Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: output/GodotMusicPlugin.aar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
